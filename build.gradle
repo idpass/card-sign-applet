@@ -1,0 +1,51 @@
+group 'card-applets'
+apply plugin: 'javacard'
+
+compileJava {
+    dependsOn 'buildJavaCard'
+}
+
+buildJavaCard {
+    dependsOn ':tools:buildJavaCard'
+}
+
+jar {
+    manifest {
+        attributes ("Uri":_getUri(projectDir))
+        attributes ("Commit-hash":_getGitHash(projectDir))
+    }
+    baseName 'idpass_sign'
+}
+
+javacard {
+  config {
+        jckit _JC_SELECTED
+        // Using custom repo with jcardsim
+        addSurrogateJcardSimRepo false
+        addImplicitJcardSim false
+        addImplicitJcardSimJunit false
+
+        cap {
+            packageName = 'org.idpass.sign'
+            version = '0.1'
+            aid = '0xF7:0x69:0x64:0x70:0x61:0x73:0x73:0x04'
+            output 'sign.cap'
+
+            applet {
+                className = 'SignApplet'
+                aid = '0xf7:0x69:0x64:0x70:0x61:0x73:0x73:0x04:0x01:0x00:0x01'
+            }
+
+            dependencies {
+                remote 'local:gp211:2.1.1'
+                remote 'local:tools:0.0.1'
+            }
+        }
+    }
+}
+
+compileJava {
+    sourceCompatibility = _sourceCompatibility 
+    targetCompatibility = _targetCompatibility 
+}
+
