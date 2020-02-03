@@ -32,7 +32,7 @@ import javacard.security.*;
 
 public class SignApplet extends IdpassApplet implements SIOAuthListener
 {
-    protected static final byte INS_SIGN = 0x03;
+    protected static final byte INS_SIGN = (byte)0xC0;
     protected static final byte INS_ESTABLISH_SECRET = 0x04;
 
     // Get signer's public key
@@ -41,7 +41,6 @@ public class SignApplet extends IdpassApplet implements SIOAuthListener
     private static final byte P2_GETPUBKEY = (byte)0x00;
 
     // Sign input data
-    // private static final byte INS_SIGN = (byte)0xC0;
     private static final byte P1_SIGN = (byte)0x00;
     private static final byte P2_SIGN = (byte)0x00;
 
@@ -169,7 +168,6 @@ public class SignApplet extends IdpassApplet implements SIOAuthListener
         short lengthIn = bArray[offset];
         if (lengthIn != 0) {
             if (1 <= lengthIn) {
-                // param 1 - not mandatory
                 secret = bArray[(short)(offset + 1)];
             }
         }
