@@ -22,7 +22,7 @@ F769647061737304010001 | Applet AID. Last 4 digits of the AID (*0001*) is the ap
 #### Install Parameters
 ORDER | LENGTH | DESCRIPTION
 -- | -- | --
-0 | 1 | Secret. <br>Parameter for Shareble Interface Objects authentication. <br><br>*0x9E* - default value
+0 | 1 | Secret. <br>Parameter for Shareable Interface Objects authentication. <br><br>*0x9E* - default value
 
 If install parameters are not set, default values will be used (*0x9E*)
 
@@ -78,4 +78,3 @@ SW | 2 | Status Word <br>0x6984 - Signature verification failed<br>0x6A85 - no o
 Contributions are welcome!
 
 - Newlogic Impact Lab
-- Dexter Aparicio
