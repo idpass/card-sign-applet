@@ -33,7 +33,7 @@ import javacard.security.*;
 public class SignApplet extends IdpassApplet implements SIOAuthListener
 {
     protected static final byte INS_SIGN = (byte)0xC0;
-    protected static final byte INS_ESTABLISH_SECRET = 0x04;
+    protected static final byte INS_ESTABLISH_SECRET = 0x04; // for testing only
 
     // Get signer's public key
     private static final byte INS_GETPUBKEY = (byte)0xEC;
@@ -283,7 +283,7 @@ public class SignApplet extends IdpassApplet implements SIOAuthListener
         return true;
     }
 
-    private void processEstablishSecret()
+    private void processEstablishSecret() // testing 
     {
         short lc = setIncomingAndReceiveUnwrap();
         byte[] buffer = getApduData();
@@ -297,13 +297,13 @@ public class SignApplet extends IdpassApplet implements SIOAuthListener
         len = (short)(SC_KEY_LENGTH / 8);
         sharedSecret = new byte[len];
         len = ka.generateSecret(buffer, (short)0, lc, sharedSecret, (short)0);
-
+        
         Util.arrayCopyNonAtomic(sharedSecret,
                                 (short)0,
                                 buffer,
                                 (short)0,
                                 (short)sharedSecret.length);
-
+        // shared secret is not meant to travel across the wire
         setOutgoingAndSendWrap(buffer, Utils.SHORT_00, len);
     }
 
