@@ -33,16 +33,12 @@ import javacard.security.*;
 public class SignApplet extends IdpassApplet implements SIOAuthListener
 {
     protected static final byte INS_SIGN = (byte)0xC0;
-    protected static final byte INS_ESTABLISH_SECRET = 0x04; // for testing only
+    protected static final byte INS_ESTABLISH_SECRET = (byte)0xE5; 
 
     // Get signer's public key
     private static final byte INS_GETPUBKEY = (byte)0xEC;
     private static final byte P1_GETPUBKEY = (byte)0x00;
     private static final byte P2_GETPUBKEY = (byte)0x00;
-
-    // Sign input data
-    private static final byte P1_SIGN = (byte)0x00;
-    private static final byte P2_SIGN = (byte)0x00;
 
     // cryptographic constants
     static final byte SECP256K1_FP[] = {
@@ -128,17 +124,13 @@ public class SignApplet extends IdpassApplet implements SIOAuthListener
     private short nKeys;
 
     private boolean[] authenticated;
-
+    
     public static void install(byte[] bArray, short bOffset, byte bLength)
     {
-        byte[] retval = new byte[3];
-        SignApplet applet = new SignApplet(bArray, bOffset, bLength, retval);
-
-        short offsetAID = Util.makeShort(retval[0], retval[1]);
-        byte lengthAID = retval[2];
+        SignApplet applet = new SignApplet(bArray, bOffset, bLength);
 
         // GP-compliant JavaCard applet registration
-        applet.register(bArray, offsetAID, lengthAID);
+        applet.register(bArray, (short)(bOffset + 1), bArray[bOffset]);
     }
 
     // default secret for SIO
@@ -149,11 +141,8 @@ public class SignApplet extends IdpassApplet implements SIOAuthListener
 
     protected SignApplet(byte[] bArray,
                          short bOffset,
-                         byte bLength,
-                         byte[] retval)
+                         byte bLength)
     {
-        byte lengthAID = bArray[bOffset];
-        short offsetAID = (short)(bOffset + 1);
         short offset = bOffset;
         offset += (bArray[offset]); // skip aid
         offset++;
@@ -161,7 +150,6 @@ public class SignApplet extends IdpassApplet implements SIOAuthListener
         offset++;
 
         // default params
-
         byte secret = DEFAULT_SECRET;
 
         // read params
@@ -170,11 +158,6 @@ public class SignApplet extends IdpassApplet implements SIOAuthListener
             if (1 <= lengthIn) {
                 secret = bArray[(short)(offset + 1)];
             }
-        }
-
-        if (retval != null) {
-            Util.setShort(retval, (short)0x0000, offsetAID);
-            retval[2] = lengthAID;
         }
 
         this.secret = secret;
@@ -283,7 +266,7 @@ public class SignApplet extends IdpassApplet implements SIOAuthListener
         return true;
     }
 
-    private void processEstablishSecret() // testing 
+    private void processEstablishSecret() 
     {
         short lc = setIncomingAndReceiveUnwrap();
         byte[] buffer = getApduData();
@@ -297,14 +280,6 @@ public class SignApplet extends IdpassApplet implements SIOAuthListener
         len = (short)(SC_KEY_LENGTH / 8);
         sharedSecret = new byte[len];
         len = ka.generateSecret(buffer, (short)0, lc, sharedSecret, (short)0);
-        
-        Util.arrayCopyNonAtomic(sharedSecret,
-                                (short)0,
-                                buffer,
-                                (short)0,
-                                (short)sharedSecret.length);
-        // shared secret is not meant to travel across the wire
-        setOutgoingAndSendWrap(buffer, Utils.SHORT_00, len);
     }
 
     private void processSign()
@@ -329,9 +304,9 @@ public class SignApplet extends IdpassApplet implements SIOAuthListener
             ISOException.throwIt(ISO7816.SW_WRONG_P1P2);
         }
 
-        short lc = setIncomingAndReceiveUnwrap();
-
         byte[] buffer = getApduData();
+        short wLen = pubKey.getW(buffer, (short)0);
+        setOutgoingAndSendWrap(buffer, Utils.SHORT_00, wLen);
     }
 
     protected void setCurveParameters(ECKey key)
