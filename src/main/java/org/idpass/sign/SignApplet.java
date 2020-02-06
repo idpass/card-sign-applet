@@ -208,7 +208,9 @@ public class SignApplet extends IdpassApplet implements SIOAuthListener
 
     public void onPersonaAuthenticated(short personaIndex, short score)
     {
-        authenticated[0] = true;
+        if (personaIndex != (short)0xFFFF) {
+            authenticated[0] = true;
+        }
     }
 
     protected void processSelect()
@@ -270,7 +272,7 @@ public class SignApplet extends IdpassApplet implements SIOAuthListener
     {
         short lc = setIncomingAndReceiveUnwrap();
         byte[] buffer = getApduData();
-        byte[] pubkey = new byte[65];
+        byte[] pubkey = new byte[lc]; // lc is well-known 65
 
         short len = Util.arrayCopyNonAtomic(
             buffer, (short)0, pubkey, (short)0, (short)pubkey.length);
@@ -279,7 +281,7 @@ public class SignApplet extends IdpassApplet implements SIOAuthListener
 
         len = (short)(SC_KEY_LENGTH / 8);
         sharedSecret = new byte[len];
-        len = ka.generateSecret(buffer, (short)0, lc, sharedSecret, (short)0);
+        len = ka.generateSecret(pubkey, (short)0, lc, sharedSecret, (short)0);
     }
 
     private void processSign()
