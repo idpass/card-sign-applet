@@ -89,27 +89,6 @@ public class SignApplet extends IdpassApplet implements SIOAuthListener
         (byte)0xBF, (byte)0xD2, (byte)0x5E, (byte)0x8C, (byte)0xD0, (byte)0x36,
         (byte)0x41, (byte)0x41};
 
-    private static final byte[] privkey_bytes = {
-        (byte)0x12, (byte)0x95, (byte)0x57, (byte)0x7B, (byte)0x89, (byte)0x86,
-        (byte)0x26, (byte)0xA5, (byte)0x73, (byte)0x93, (byte)0x85, (byte)0xE2,
-        (byte)0x76, (byte)0xCD, (byte)0xCA, (byte)0xC2, (byte)0x00, (byte)0x5F,
-        (byte)0xDE, (byte)0x4B, (byte)0x44, (byte)0x14, (byte)0x7E, (byte)0xBC,
-        (byte)0xF2, (byte)0x53, (byte)0x10, (byte)0xD2, (byte)0xC2, (byte)0xC4,
-        (byte)0x24, (byte)0x17};
-
-    private static final byte[] pubkey_bytes = {
-        (byte)0x04, (byte)0x05, (byte)0x81, (byte)0xE4, (byte)0xAE, (byte)0xEE,
-        (byte)0xB1, (byte)0xCE, (byte)0xA5, (byte)0x70, (byte)0x94, (byte)0xD1,
-        (byte)0xAD, (byte)0x97, (byte)0xB8, (byte)0xC7, (byte)0x21, (byte)0x50,
-        (byte)0x9B, (byte)0x6E, (byte)0x5D, (byte)0x36, (byte)0x90, (byte)0xC7,
-        (byte)0x0B, (byte)0xBB, (byte)0x8E, (byte)0xB2, (byte)0xC5, (byte)0xFE,
-        (byte)0x80, (byte)0x40, (byte)0xFB, (byte)0x2C, (byte)0x9B, (byte)0x0A,
-        (byte)0x77, (byte)0xEA, (byte)0x2A, (byte)0xD0, (byte)0x5C, (byte)0x5E,
-        (byte)0x8D, (byte)0xB4, (byte)0x99, (byte)0xF6, (byte)0x47, (byte)0xBC,
-        (byte)0x9A, (byte)0x8B, (byte)0xE8, (byte)0x29, (byte)0x96, (byte)0x19,
-        (byte)0x50, (byte)0xD6, (byte)0xF5, (byte)0xA4, (byte)0x59, (byte)0x52,
-        (byte)0xC0, (byte)0x97, (byte)0xCC, (byte)0xB0, (byte)0xBC};
-
     protected static final short SECP256K1_KEY_SIZE = 256;
     protected static final byte SECP256K1_K = (byte)0x01;
     protected static final short SC_KEY_LENGTH = 256;
@@ -171,12 +150,7 @@ public class SignApplet extends IdpassApplet implements SIOAuthListener
         setCurveParameters((ECKey)privKey);
         setCurveParameters((ECKey)pubKey);
 
-        if (pubkey_bytes != null && privkey_bytes != null) {
-            privKey.setS(privkey_bytes, (short)0, (short)privkey_bytes.length);
-            pubKey.setW(pubkey_bytes, (short)0, (short)pubkey_bytes.length);
-        } else {
-            kp.genKeyPair();
-        }
+        kp.genKeyPair();
 
         ka.init(privKey);
         signer = Signature.getInstance(Signature.ALG_ECDSA_SHA_256, false);
