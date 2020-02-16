@@ -272,13 +272,52 @@ public class SignApplet extends IdpassApplet implements SIOAuthListener
 
         short lc = setIncomingAndReceiveUnwrap();
         byte[] buffer = getApduData();
+        short siglen = 0;
 
         byte[] output = new byte[72];
+
         signer.init(privKey, Signature.MODE_SIGN);
-        short siglen = signer.signPreComputedHash(
-            buffer, (short)0, MessageDigest.LENGTH_SHA_256, output, (short)0);
-        Util.arrayCopyNonAtomic(output, (short)0, buffer, (short)0, siglen);
-        setOutgoingAndSendWrap(buffer, Utils.SHORT_00, siglen);
+
+        if (p1 == 0x00) {
+            siglen = signer.sign(buffer, (short)0, lc, output, (short)0);
+
+        } else if (p1 == 0x01) {
+            siglen = signer.signPreComputedHash(buffer,
+                                                (short)0,
+                                                MessageDigest.LENGTH_SHA_256,
+                                                output,
+                                                (short)0);
+
+        } else {
+            ISOException.throwIt(ISO7816.SW_CONDITIONS_NOT_SATISFIED);
+        }
+
+        byte[] sigbytes = new byte[siglen];
+        Util.arrayCopyNonAtomic(output, (short)0, sigbytes, (short)0, siglen);
+
+        byte[] public_key_bytes = new byte[65];
+        short wLen = pubKey.getW(public_key_bytes, (short)0);
+
+        DataElement pubK
+            = new DataElement(DataElement.PUBLICKEY, public_key_bytes);
+        DataElement signature = null;
+
+        if (p1 == 0x00) {
+            signature = new DataElement(DataElement.SIGNATURE_D,
+                                        sigbytes); // any blob data
+        } else {
+            signature = new DataElement(DataElement.SIGNATURE_H,
+                                        sigbytes); // pre-computed hash
+        }
+
+        DataElement sequence = new DataElement(DataElement.DATSEQ);
+
+        sequence.addElement(signature);
+        sequence.addElement(pubK);
+
+        byte[] outdata = sequence.toByteArray();
+
+        setOutgoingAndSendWrap(outdata, Utils.SHORT_00, (short)outdata.length);
     }
 
     private void processGetPubKey()
@@ -312,11 +351,12 @@ public class SignApplet extends IdpassApplet implements SIOAuthListener
         short lc = setIncomingAndReceiveUnwrap();
         byte[] buffer = getApduData();
 
-        short offset = 1;
-        short len = buffer[0];
-        privKey.setS(buffer, offset, len);
-        offset = (short)(2 + len);
-        len = buffer[(short)(len + 1)];
-        pubKey.setW(buffer, offset, len);
+        byte[] key;
+
+        key = DataElement.extract(buffer, DataElement.TYPEDESC_PRIVATEKEY);
+        privKey.setS(key, (short)0, (short)key.length);
+
+        key = DataElement.extract(buffer, DataElement.TYPEDESC_PUBLICKEY);
+        pubKey.setW(key, (short)0, (short)key.length);
     }
 }
